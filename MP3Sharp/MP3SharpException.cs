@@ -19,34 +19,44 @@ using System.IO;
 using System.Runtime.Serialization;
 using MP3Sharp.Support;
 
-namespace MP3Sharp {
-    /// <summary>
-    /// MP3SharpException is the base class for all API-level
-    /// exceptions thrown by MP3Sharp. To facilitate conversion and
-    /// common handling of exceptions from other domains, the class
-    /// can delegate some functionality to a contained Throwable instance.
-    /// </summary>
-    [Serializable]
-    public class MP3SharpException : Exception {
-        internal MP3SharpException() { }
+namespace MP3Sharp;
 
-        internal MP3SharpException(string message) : base(message) { }
+/// <summary>
+/// MP3SharpException is the base class for all API-level
+/// exceptions thrown by MP3Sharp. To facilitate conversion and
+/// common handling of exceptions from other domains, the class
+/// can delegate some functionality to a contained Throwable instance.
+/// </summary>
+[Serializable]
+public class MP3SharpException : Exception
+{
+    internal MP3SharpException()
+    {
+    }
 
-        internal MP3SharpException(string message, Exception inner) : base(message, inner) { }
+    internal MP3SharpException(string message) : base(message)
+    {
+    }
 
-        protected MP3SharpException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    internal MP3SharpException(string message, Exception inner) : base(message, inner)
+    {
+    }
 
-        internal void PrintStackTrace() {
-            SupportClass.WriteStackTrace(this, Console.Error);
+    protected MP3SharpException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
+    }
+
+    internal void PrintStackTrace() => SupportClass.WriteStackTrace(this, Console.Error);
+
+    internal void PrintStackTrace(StreamWriter ps)
+    {
+        if (InnerException == null)
+        {
+            SupportClass.WriteStackTrace(this, ps);
         }
-
-        internal void PrintStackTrace(StreamWriter ps) {
-            if (InnerException == null) {
-                SupportClass.WriteStackTrace(this, ps);
-            }
-            else {
-                SupportClass.WriteStackTrace(InnerException, Console.Error);
-            }
+        else
+        {
+            SupportClass.WriteStackTrace(InnerException, Console.Error);
         }
     }
 }

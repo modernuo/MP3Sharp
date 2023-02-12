@@ -14,17 +14,20 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding.Decoders.LayerIII {
-    public class ScaleFactorData {
-        internal int[] L; /* [cb] */
-        internal int[][] S; /* [window][cb] */
+namespace MP3Sharp.Decoding.Decoders.LayerIII;
 
-        internal ScaleFactorData() {
-            L = new int[23];
-            S = new int[3][];
-            for (int i = 0; i < 3; i++) {
-                S[i] = new int[13];
-            }
+public class ScaleFactorData
+{
+    internal int[] L;   /* [cb] */
+    internal int[][] S; /* [window][cb] */
+
+    internal ScaleFactorData()
+    {
+        L = new int[23];
+        S = new int[3][];
+        for (var i = 0; i < 3; i++)
+        {
+            S[i] = new int[13];
         }
     }
 }

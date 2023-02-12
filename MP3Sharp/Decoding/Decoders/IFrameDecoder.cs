@@ -14,18 +14,19 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding.Decoders {
+namespace MP3Sharp.Decoding.Decoders;
+
+/// <summary>
+/// Implementations of FrameDecoder are responsible for decoding
+/// an MPEG audio frame.
+/// </summary>
+//REVIEW: the interface currently is too thin. There should be
+// methods to specify the output buffer, the synthesis filters and
+// possibly other objects used by the decoder. 
+public interface IFrameDecoder
+{
     /// <summary>
-    /// Implementations of FrameDecoder are responsible for decoding
-    /// an MPEG audio frame.
+    /// Decodes one frame of MPEG audio.
     /// </summary>
-    //REVIEW: the interface currently is too thin. There should be
-    // methods to specify the output buffer, the synthesis filters and
-    // possibly other objects used by the decoder. 
-    public interface IFrameDecoder {
-        /// <summary>
-        /// Decodes one frame of MPEG audio.
-        /// </summary>
-        void DecodeFrame();
-    }
+    void DecodeFrame();
 }

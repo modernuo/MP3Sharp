@@ -14,29 +14,33 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding.Decoders.LayerIII {
-    public class ScaleFactorTable {
-        internal int[] L;
-        internal int[] S;
+namespace MP3Sharp.Decoding.Decoders.LayerIII;
 
-        private LayerIIIDecoder _EnclosingInstance;
+public class ScaleFactorTable
+{
+    internal int[] L;
+    internal int[] S;
 
-        internal ScaleFactorTable(LayerIIIDecoder enclosingInstance) {
-            InitBlock(enclosingInstance);
-            L = new int[5];
-            S = new int[3];
-        }
+    private LayerIIIDecoder _EnclosingInstance;
 
-        internal ScaleFactorTable(LayerIIIDecoder enclosingInstance, int[] thel, int[] thes) {
-            InitBlock(enclosingInstance);
-            L = thel;
-            S = thes;
-        }
+    internal ScaleFactorTable(LayerIIIDecoder enclosingInstance)
+    {
+        InitBlock(enclosingInstance);
+        L = new int[5];
+        S = new int[3];
+    }
 
-        internal LayerIIIDecoder EnclosingInstance => _EnclosingInstance;
+    internal ScaleFactorTable(LayerIIIDecoder enclosingInstance, int[] thel, int[] thes)
+    {
+        InitBlock(enclosingInstance);
+        L = thel;
+        S = thes;
+    }
 
-        private void InitBlock(LayerIIIDecoder enclosingInstance) {
-            _EnclosingInstance = enclosingInstance;
-        }
+    internal LayerIIIDecoder EnclosingInstance => _EnclosingInstance;
+
+    private void InitBlock(LayerIIIDecoder enclosingInstance)
+    {
+        _EnclosingInstance = enclosingInstance;
     }
 }

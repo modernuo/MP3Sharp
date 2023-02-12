@@ -17,62 +17,74 @@
 using System;
 using System.IO;
 
-namespace MP3Sharp.Decoding {
-    /// <summary>
-    /// A PushbackStream is a stream that can "push back" or "unread" data. This is useful in situations where it is convenient for a
-    /// fragment of code to read an indefinite number of data bytes that are delimited by a particular byte value; after reading the
-    /// terminating byte, the code fragment can "unread" it, so that the next read operation on the input stream will reread the byte
-    /// that was pushed back.
-    /// </summary>
-    public class PushbackStream {
-        private readonly int _BackBufferSize;
-        private readonly CircularByteBuffer _CircularByteBuffer;
-        private readonly Stream _Stream;
-        private readonly byte[] _TemporaryBuffer;
-        private int _NumForwardBytesInBuffer;
+namespace MP3Sharp.Decoding;
 
-        internal PushbackStream(Stream s, int backBufferSize) {
-            _Stream = s;
-            _BackBufferSize = backBufferSize;
-            _TemporaryBuffer = new byte[_BackBufferSize];
-            _CircularByteBuffer = new CircularByteBuffer(_BackBufferSize);
-        }
+/// <summary>
+/// A PushbackStream is a stream that can "push back" or "unread" data. This is useful in situations where it is convenient for a
+/// fragment of code to read an indefinite number of data bytes that are delimited by a particular byte value; after reading the
+/// terminating byte, the code fragment can "unread" it, so that the next read operation on the input stream will reread the byte
+/// that was pushed back.
+/// </summary>
+public class PushbackStream
+{
+    private readonly int _BackBufferSize;
+    private readonly CircularByteBuffer _CircularByteBuffer;
+    private readonly Stream _Stream;
+    private readonly byte[] _TemporaryBuffer;
+    private int _NumForwardBytesInBuffer;
 
-        internal int Read(sbyte[] readBuffer, int offset, int length) {
-            // Read 
-            int index = 0;
-            bool canReadStream = true;
-            while (index < length && canReadStream) {
-                if (_NumForwardBytesInBuffer > 0) {
-                    // from memory
-                    _NumForwardBytesInBuffer--;
-                    readBuffer[offset + index] = (sbyte)_CircularByteBuffer[_NumForwardBytesInBuffer];
-                    index++;
-                }
-                else {
-                    // from stream
-                    int countBytesToRead = length - index > _TemporaryBuffer.Length ? _TemporaryBuffer.Length : length - index;
-                    int countBytesRead = _Stream.Read(_TemporaryBuffer, 0, countBytesToRead);
-                    canReadStream = countBytesRead >= countBytesToRead;
-                    for (int i = 0; i < countBytesRead; i++) {
-                        _CircularByteBuffer.Push(_TemporaryBuffer[i]);
-                        readBuffer[offset + index + i] = (sbyte)_TemporaryBuffer[i];
-                    }
-                    index += countBytesRead;
-                }
+    internal PushbackStream(Stream s, int backBufferSize)
+    {
+        _Stream = s;
+        _BackBufferSize = backBufferSize;
+        _TemporaryBuffer = new byte[_BackBufferSize];
+        _CircularByteBuffer = new CircularByteBuffer(_BackBufferSize);
+    }
+
+    internal int Read(sbyte[] readBuffer, int offset, int length)
+    {
+        // Read 
+        var index = 0;
+        var canReadStream = true;
+        while (index < length && canReadStream)
+        {
+            if (_NumForwardBytesInBuffer > 0)
+            {
+                // from memory
+                _NumForwardBytesInBuffer--;
+                readBuffer[offset + index] = (sbyte)_CircularByteBuffer[_NumForwardBytesInBuffer];
+                index++;
             }
-            return index;
-        }
+            else
+            {
+                // from stream
+                var countBytesToRead = length - index > _TemporaryBuffer.Length ? _TemporaryBuffer.Length : length - index;
+                var countBytesRead = _Stream.Read(_TemporaryBuffer, 0, countBytesToRead);
+                canReadStream = countBytesRead >= countBytesToRead;
+                for (var i = 0; i < countBytesRead; i++)
+                {
+                    _CircularByteBuffer.Push(_TemporaryBuffer[i]);
+                    readBuffer[offset + index + i] = (sbyte)_TemporaryBuffer[i];
+                }
 
-        internal void UnRead(int length) {
-            _NumForwardBytesInBuffer += length;
-            if (_NumForwardBytesInBuffer > _BackBufferSize) {
-                throw new Exception("The backstream cannot unread the requested number of bytes.");
+                index += countBytesRead;
             }
         }
 
-        internal void Close() {
-            _Stream.Close();
+        return index;
+    }
+
+    internal void UnRead(int length)
+    {
+        _NumForwardBytesInBuffer += length;
+        if (_NumForwardBytesInBuffer > _BackBufferSize)
+        {
+            throw new Exception("The backstream cannot unread the requested number of bytes.");
         }
+    }
+
+    internal void Close()
+    {
+        _Stream.Close();
     }
 }

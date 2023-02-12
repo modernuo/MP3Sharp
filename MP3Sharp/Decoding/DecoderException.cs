@@ -17,46 +17,53 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MP3Sharp.Decoding {
-    /// <summary>
-    /// The DecoderException represents the class of
-    /// errors that can occur when decoding MPEG audio.
-    /// </summary>
-    [Serializable]
-    public class DecoderException : MP3SharpException {
-        private int _ErrorCode;
+namespace MP3Sharp.Decoding;
 
-        internal DecoderException(string message, Exception inner) : base(message, inner) {
-            InitBlock();
-        }
+/// <summary>
+/// The DecoderException represents the class of
+/// errors that can occur when decoding MPEG audio.
+/// </summary>
+[Serializable]
+public class DecoderException : MP3SharpException
+{
+    private int _ErrorCode;
 
-        internal DecoderException(int errorcode, Exception inner) : this(GetErrorString(errorcode), inner) {
-            InitBlock();
-            _ErrorCode = errorcode;
-        }
-
-        protected DecoderException(SerializationInfo info, StreamingContext context) : base(info, context) {
-            _ErrorCode = info.GetInt32("ErrorCode");
-        }
-
-        internal virtual int ErrorCode => _ErrorCode;
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context) {
-            if (info == null) {
-                throw new ArgumentNullException(nameof(info));
-            }
-
-            info.AddValue("ErrorCode", _ErrorCode);
-            base.GetObjectData(info, context);
-        }
-
-        private void InitBlock() {
-            _ErrorCode = DecoderErrors.UNKNOWN_ERROR;
-        }
-
-        internal static string GetErrorString(int errorcode) =>
-            // REVIEW: use resource file to map error codes
-            // to locale-sensitive strings. 
-            "Decoder errorcode " + Convert.ToString(errorcode, 16);
+    internal DecoderException(string message, Exception inner) : base(message, inner)
+    {
+        InitBlock();
     }
+
+    internal DecoderException(int errorcode, Exception inner) : this(GetErrorString(errorcode), inner)
+    {
+        InitBlock();
+        _ErrorCode = errorcode;
+    }
+
+    protected DecoderException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
+        _ErrorCode = info.GetInt32("ErrorCode");
+    }
+
+    internal virtual int ErrorCode => _ErrorCode;
+
+    public override void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+        if (info == null)
+        {
+            throw new ArgumentNullException(nameof(info));
+        }
+
+        info.AddValue("ErrorCode", _ErrorCode);
+        base.GetObjectData(info, context);
+    }
+
+    private void InitBlock()
+    {
+        _ErrorCode = DecoderErrors.UNKNOWN_ERROR;
+    }
+
+    internal static string GetErrorString(int errorcode) =>
+        // REVIEW: use resource file to map error codes
+        // to locale-sensitive strings. 
+        $"Decoder errorcode {Convert.ToString(errorcode, 16)}";
 }

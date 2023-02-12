@@ -17,198 +17,217 @@
 using System.IO;
 using MP3Sharp.Support;
 
-namespace MP3Sharp.IO {
-    /// <summary>
-    /// public class allowing WaveFormat Access
-    /// </summary>
-    public class WaveFile : RiffFile {
-        internal const int MAX_WAVE_CHANNELS = 2;
-        private readonly int _NumSamples;
-        private readonly RiffChunkHeader _PcmData;
-        private readonly WaveFormatChunk _WaveFormat;
-        private bool _JustWriteLengthBytes;
-        private long _PcmDataOffset; // offset of 'pc_data' in output file
+namespace MP3Sharp.IO;
 
-        /// <summary>
-        /// Creates a new WaveFile instance.
-        /// </summary>
-        internal WaveFile() {
-            _PcmData = new RiffChunkHeader(this);
-            _WaveFormat = new WaveFormatChunk(this);
-            _PcmData.CkId = FourCC("data");
-            _PcmData.CkSize = 0;
-            _NumSamples = 0;
+/// <summary>
+/// public class allowing WaveFormat Access
+/// </summary>
+public class WaveFile : RiffFile
+{
+    internal const int MAX_WAVE_CHANNELS = 2;
+    private readonly int _NumSamples;
+    private readonly RiffChunkHeader _PcmData;
+    private readonly WaveFormatChunk _WaveFormat;
+    private bool _JustWriteLengthBytes;
+    private long _PcmDataOffset; // offset of 'pc_data' in output file
+
+    /// <summary>
+    /// Creates a new WaveFile instance.
+    /// </summary>
+    internal WaveFile()
+    {
+        _PcmData = new RiffChunkHeader(this);
+        _WaveFormat = new WaveFormatChunk(this);
+        _PcmData.CkId = FourCC("data");
+        _PcmData.CkSize = 0;
+        _NumSamples = 0;
+    }
+
+    /// <summary>
+    /// Pass in either a FileName or a Stream.
+    /// </summary>
+    internal virtual int OpenForWrite(
+        string filename,
+        Stream stream,
+        int samplingRate,
+        short bitsPerSample,
+        short numChannels
+    )
+    {
+        // Verify parameters...
+        if ((bitsPerSample != 8 && bitsPerSample != 16) || numChannels < 1 || numChannels > 2)
+        {
+            return DDC_INVALID_CALL;
         }
 
-        /// <summary>
-        /// Pass in either a FileName or a Stream.
-        /// </summary>
-        internal virtual int OpenForWrite(string filename, Stream stream, int samplingRate, short bitsPerSample,
-            short numChannels) {
-            // Verify parameters...
-            if ((bitsPerSample != 8 && bitsPerSample != 16) || numChannels < 1 || numChannels > 2) {
-                return DDC_INVALID_CALL;
-            }
+        _WaveFormat.Data.Config(samplingRate, bitsPerSample, numChannels);
 
-            _WaveFormat.Data.Config(samplingRate, bitsPerSample, numChannels);
+        var retcode = DDC_SUCCESS;
+        if (stream != null)
+        {
+            retcode = Open(stream, RF_WRITE);
+        }
+        else
+        {
+            retcode = Open(filename, RF_WRITE);
+        }
 
-            int retcode = DDC_SUCCESS;
-            if (stream != null)
-                Open(stream, RF_WRITE);
-            else
-                Open(filename, RF_WRITE);
-
-            if (retcode == DDC_SUCCESS) {
-                sbyte[] theWave = {
-                    (sbyte)SupportClass.Identity('W'), (sbyte)SupportClass.Identity('A'),
-                    (sbyte)SupportClass.Identity('V'), (sbyte)SupportClass.Identity('E')
-                };
-                retcode = Write(theWave, 4);
-
-                if (retcode == DDC_SUCCESS) {
-                    // Ecriture de wave_format
-                    retcode = Write(_WaveFormat.Header, 8);
-                    retcode = Write(_WaveFormat.Data.FormatTag, 2);
-                    retcode = Write(_WaveFormat.Data.NumChannels, 2);
-                    retcode = Write(_WaveFormat.Data.NumSamplesPerSec, 4);
-                    retcode = Write(_WaveFormat.Data.NumAvgBytesPerSec, 4);
-                    retcode = Write(_WaveFormat.Data.NumBlockAlign, 2);
-                    retcode = Write(_WaveFormat.Data.NumBitsPerSample, 2);
-
-                    if (retcode == DDC_SUCCESS) {
-                        _PcmDataOffset = CurrentFilePosition();
-                        retcode = Write(_PcmData, 8);
-                    }
-                }
-            }
-
+        if (retcode != DDC_SUCCESS)
+        {
             return retcode;
         }
 
-        /// <summary>
-        /// Write 16-bit audio
-        /// </summary>
-        internal virtual int WriteData(short[] data, int numData) {
-            int extraBytes = numData * 2;
-            _PcmData.CkSize += extraBytes;
-            return Write(data, extraBytes);
-        }
+        sbyte[] theWave =
+        {
+            (sbyte)SupportClass.Identity('W'), (sbyte)SupportClass.Identity('A'),
+            (sbyte)SupportClass.Identity('V'), (sbyte)SupportClass.Identity('E')
+        };
 
-        internal override int Close() {
-            int rc = DDC_SUCCESS;
+        retcode = Write(theWave, 4);
 
-            if (Fmode == RF_WRITE)
-                rc = Backpatch(_PcmDataOffset, _PcmData, 8);
-            if (!_JustWriteLengthBytes) {
-                if (rc == DDC_SUCCESS)
-                    rc = base.Close();
-            }
-            return rc;
-        }
+        if (retcode == DDC_SUCCESS)
+        {
+            // Ecriture de wave_format
+            retcode = Write(_WaveFormat.Header, 8);
+            retcode = Write(_WaveFormat.Data.FormatTag, 2);
+            retcode = Write(_WaveFormat.Data.NumChannels, 2);
+            retcode = Write(_WaveFormat.Data.NumSamplesPerSec, 4);
+            retcode = Write(_WaveFormat.Data.NumAvgBytesPerSec, 4);
+            retcode = Write(_WaveFormat.Data.NumBlockAlign, 2);
+            retcode = Write(_WaveFormat.Data.NumBitsPerSample, 2);
 
-        internal int Close(bool justWriteLengthBytes) {
-            _JustWriteLengthBytes = justWriteLengthBytes;
-            int ret = Close();
-            _JustWriteLengthBytes = false;
-            return ret;
-        }
-
-        // [Hz]
-        internal virtual int SamplingRate() {
-            return _WaveFormat.Data.NumSamplesPerSec;
-        }
-
-        internal virtual short BitsPerSample() {
-            return _WaveFormat.Data.NumBitsPerSample;
-        }
-
-        internal virtual short NumChannels() {
-            return _WaveFormat.Data.NumChannels;
-        }
-
-        internal virtual int NumSamples() {
-            return _NumSamples;
-        }
-
-        /// <summary>
-        /// Open for write using another wave file's parameters...
-        /// </summary>
-        internal virtual int OpenForWrite(string filename, WaveFile otherWave) {
-            return OpenForWrite(filename, null, otherWave.SamplingRate(), otherWave.BitsPerSample(),
-                otherWave.NumChannels());
-        }
-
-        internal sealed class WaveFormatChunkData {
-            private WaveFile _EnclosingInstance;
-            internal int NumAvgBytesPerSec;
-            internal short NumBitsPerSample;
-            internal short NumBlockAlign;
-            internal short NumChannels; // Number of channels (mono=1, stereo=2)
-            internal int NumSamplesPerSec; // Sampling rate [Hz]
-            internal short FormatTag; // Format category (PCM=1)
-
-            internal WaveFormatChunkData(WaveFile enclosingInstance) {
-                InitBlock(enclosingInstance);
-                FormatTag = 1; // PCM
-                Config(44100, 16, 1);
-            }
-
-            internal WaveFile EnclosingInstance => _EnclosingInstance;
-
-            private void InitBlock(WaveFile enclosingInstance) {
-                _EnclosingInstance = enclosingInstance;
-            }
-
-            internal void Config(int newSamplingRate, short newBitsPerSample, short newNumChannels) {
-                NumSamplesPerSec = newSamplingRate;
-                NumChannels = newNumChannels;
-                NumBitsPerSample = newBitsPerSample;
-                NumAvgBytesPerSec = (NumChannels * NumSamplesPerSec * NumBitsPerSample) / 8;
-                NumBlockAlign = (short)((NumChannels * NumBitsPerSample) / 8);
+            if (retcode == DDC_SUCCESS)
+            {
+                _PcmDataOffset = CurrentFilePosition();
+                retcode = Write(_PcmData, 8);
             }
         }
 
-        public class WaveFormatChunk {
-            internal WaveFormatChunkData Data;
-            private WaveFile _EnclosingInstance;
-            internal RiffChunkHeader Header;
+        return retcode;
+    }
 
-            internal WaveFormatChunk(WaveFile enclosingInstance) {
-                InitBlock(enclosingInstance);
-                Header = new RiffChunkHeader(enclosingInstance);
-                Data = new WaveFormatChunkData(enclosingInstance);
-                Header.CkId = FourCC("fmt ");
-                Header.CkSize = 16;
-            }
+    /// <summary>
+    /// Write 16-bit audio
+    /// </summary>
+    internal virtual int WriteData(short[] data, int numData)
+    {
+        var extraBytes = numData * 2;
+        _PcmData.CkSize += extraBytes;
+        return Write(data, extraBytes);
+    }
 
-            internal WaveFile EnclosingInstance => _EnclosingInstance;
+    internal override int Close()
+    {
+        var rc = DDC_SUCCESS;
 
-            private void InitBlock(WaveFile enclosingInstance) {
-                _EnclosingInstance = enclosingInstance;
-            }
+        if (Fmode == RF_WRITE)
+        {
+            rc = Backpatch(_PcmDataOffset, _PcmData, 8);
+        }
 
-            internal virtual int VerifyValidity() {
-                bool ret = Header.CkId == FourCC("fmt ") && (Data.NumChannels == 1 || Data.NumChannels == 2) &&
-                           Data.NumAvgBytesPerSec == (Data.NumChannels * Data.NumSamplesPerSec * Data.NumBitsPerSample) / 8 &&
-                           Data.NumBlockAlign == (Data.NumChannels * Data.NumBitsPerSample) / 8;
-                return ret ? 1 : 0;
+        if (!_JustWriteLengthBytes)
+        {
+            if (rc == DDC_SUCCESS)
+            {
+                rc = base.Close();
             }
         }
 
-        public class WaveFileSample {
-            internal short[] Chan;
-            private WaveFile _EnclosingInstance;
+        return rc;
+    }
 
-            internal WaveFileSample(WaveFile enclosingInstance) {
-                InitBlock(enclosingInstance);
-                Chan = new short[MAX_WAVE_CHANNELS];
-            }
+    internal int Close(bool justWriteLengthBytes)
+    {
+        _JustWriteLengthBytes = justWriteLengthBytes;
+        var ret = Close();
+        _JustWriteLengthBytes = false;
+        return ret;
+    }
 
-            internal WaveFile EnclosingInstance => _EnclosingInstance;
+    // [Hz]
+    internal virtual int SamplingRate() => _WaveFormat.Data.NumSamplesPerSec;
 
-            private void InitBlock(WaveFile enclosingInstance) {
-                _EnclosingInstance = enclosingInstance;
-            }
+    internal virtual short BitsPerSample() => _WaveFormat.Data.NumBitsPerSample;
+
+    internal virtual short NumChannels() => _WaveFormat.Data.NumChannels;
+
+    internal virtual int NumSamples() => _NumSamples;
+
+    /// <summary>
+    /// Open for write using another wave file's parameters...
+    /// </summary>
+    internal virtual int OpenForWrite(string filename, WaveFile otherWave) =>
+        OpenForWrite(filename, null, otherWave.SamplingRate(), otherWave.BitsPerSample(), otherWave.NumChannels());
+
+    internal sealed class WaveFormatChunkData
+    {
+        internal int NumAvgBytesPerSec;
+        internal short NumBitsPerSample;
+        internal short NumBlockAlign;
+        internal short NumChannels;    // Number of channels (mono=1, stereo=2)
+        internal int NumSamplesPerSec; // Sampling rate [Hz]
+        internal short FormatTag;      // Format category (PCM=1)
+
+        internal WaveFormatChunkData(WaveFile enclosingInstance)
+        {
+            InitBlock(enclosingInstance);
+            FormatTag = 1; // PCM
+            Config(44100, 16, 1);
         }
+
+        internal WaveFile EnclosingInstance { get; private set; }
+
+        private void InitBlock(WaveFile enclosingInstance) => EnclosingInstance = enclosingInstance;
+
+        internal void Config(int newSamplingRate, short newBitsPerSample, short newNumChannels)
+        {
+            NumSamplesPerSec = newSamplingRate;
+            NumChannels = newNumChannels;
+            NumBitsPerSample = newBitsPerSample;
+            NumAvgBytesPerSec = NumChannels * NumSamplesPerSec * NumBitsPerSample / 8;
+            NumBlockAlign = (short)(NumChannels * NumBitsPerSample / 8);
+        }
+    }
+
+    public class WaveFormatChunk
+    {
+        internal WaveFormatChunkData Data;
+        internal RiffChunkHeader Header;
+
+        internal WaveFormatChunk(WaveFile enclosingInstance)
+        {
+            InitBlock(enclosingInstance);
+            Header = new RiffChunkHeader(enclosingInstance);
+            Data = new WaveFormatChunkData(enclosingInstance);
+            Header.CkId = FourCC("fmt ");
+            Header.CkSize = 16;
+        }
+
+        internal WaveFile EnclosingInstance { get; private set; }
+
+        private void InitBlock(WaveFile enclosingInstance) => EnclosingInstance = enclosingInstance;
+
+        internal virtual int VerifyValidity()
+        {
+            var ret = Header.CkId == FourCC("fmt ") && (Data.NumChannels == 1 || Data.NumChannels == 2) &&
+                      Data.NumAvgBytesPerSec == Data.NumChannels * Data.NumSamplesPerSec * Data.NumBitsPerSample / 8 &&
+                      Data.NumBlockAlign == Data.NumChannels * Data.NumBitsPerSample / 8;
+            return ret ? 1 : 0;
+        }
+    }
+
+    public class WaveFileSample
+    {
+        internal short[] Chan;
+
+        internal WaveFileSample(WaveFile enclosingInstance)
+        {
+            InitBlock(enclosingInstance);
+            Chan = new short[MAX_WAVE_CHANNELS];
+        }
+
+        internal WaveFile EnclosingInstance { get; private set; }
+
+        private void InitBlock(WaveFile enclosingInstance) => EnclosingInstance = enclosingInstance;
     }
 }

@@ -14,16 +14,18 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding.Decoders.LayerIII {
-    public class Layer3SideInfo {
-        internal ChannelData[] Channels;
-        internal int MainDataBegin;
-        internal int PrivateBits;
+namespace MP3Sharp.Decoding.Decoders.LayerIII;
 
-        internal Layer3SideInfo() {
-            Channels = new ChannelData[2];
-            Channels[0] = new ChannelData();
-            Channels[1] = new ChannelData();
-        }
+public class Layer3SideInfo
+{
+    internal ChannelData[] Channels;
+    internal int MainDataBegin;
+    internal int PrivateBits;
+
+    internal Layer3SideInfo()
+    {
+        Channels = new ChannelData[2];
+        Channels[0] = new ChannelData();
+        Channels[1] = new ChannelData();
     }
 }

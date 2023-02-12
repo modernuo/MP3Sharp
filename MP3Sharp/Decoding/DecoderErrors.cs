@@ -14,13 +14,14 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding {
-    /// <summary>
-    /// This interface provides constants describing the error
-    /// codes used by the Decoder to indicate errors.
-    /// </summary>
-    internal struct DecoderErrors {
-        internal const int UNKNOWN_ERROR = BitstreamErrors.DECODER_ERROR + 0;
-        internal const int UNSUPPORTED_LAYER = BitstreamErrors.DECODER_ERROR + 1;
-    }
+namespace MP3Sharp.Decoding;
+
+/// <summary>
+/// This interface provides constants describing the error
+/// codes used by the Decoder to indicate errors.
+/// </summary>
+internal struct DecoderErrors
+{
+    internal const int UNKNOWN_ERROR = BitstreamErrors.DECODER_ERROR + 0;
+    internal const int UNSUPPORTED_LAYER = BitstreamErrors.DECODER_ERROR + 1;
 }

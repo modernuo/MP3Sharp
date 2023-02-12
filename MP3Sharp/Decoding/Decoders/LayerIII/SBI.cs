@@ -14,19 +14,22 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding.Decoders.LayerIII {
-    public class SBI {
-        internal int[] L;
-        internal int[] S;
+namespace MP3Sharp.Decoding.Decoders.LayerIII;
 
-        internal SBI() {
-            L = new int[23];
-            S = new int[14];
-        }
+public class SBI
+{
+    internal int[] L;
+    internal int[] S;
 
-        internal SBI(int[] thel, int[] thes) {
-            L = thel;
-            S = thes;
-        }
+    internal SBI()
+    {
+        L = new int[23];
+        S = new int[14];
+    }
+
+    internal SBI(int[] thel, int[] thes)
+    {
+        L = thel;
+        S = thes;
     }
 }

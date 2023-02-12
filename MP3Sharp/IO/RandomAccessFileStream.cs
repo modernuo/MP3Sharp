@@ -17,20 +17,22 @@
 using System;
 using System.IO;
 
-namespace MP3Sharp.IO {
-    public class RandomAccessFileStream {
-        internal static FileStream CreateRandomAccessFile(string fileName, string mode) {
-            FileStream newFile;
+namespace MP3Sharp.IO;
 
-            if (string.Compare(mode, "rw", StringComparison.Ordinal) == 0)
-                newFile = new FileStream(fileName, FileMode.OpenOrCreate,
-                    FileAccess.ReadWrite);
-            else if (string.Compare(mode, "r", StringComparison.Ordinal) == 0)
-                newFile = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-            else
-                throw new ArgumentException();
-
-            return newFile;
+public class RandomAccessFileStream
+{
+    internal static FileStream CreateRandomAccessFile(string fileName, string mode)
+    {
+        if (string.Compare(mode, "rw", StringComparison.Ordinal) == 0)
+        {
+            return new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         }
+
+        if (string.Compare(mode, "r", StringComparison.Ordinal) == 0)
+        {
+            return new FileStream(fileName, FileMode.Open, FileAccess.Read);
+        }
+
+        throw new ArgumentException();
     }
 }

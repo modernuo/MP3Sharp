@@ -14,16 +14,18 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding.Decoders.LayerIII {
-    public class ChannelData {
-        internal GranuleInfo[] Granules;
-        internal int[] ScaleFactorBits;
+namespace MP3Sharp.Decoding.Decoders.LayerIII;
 
-        internal ChannelData() {
-            ScaleFactorBits = new int[4];
-            Granules = new GranuleInfo[2];
-            Granules[0] = new GranuleInfo();
-            Granules[1] = new GranuleInfo();
-        }
+public class ChannelData
+{
+    internal GranuleInfo[] Granules;
+    internal int[] ScaleFactorBits;
+
+    internal ChannelData()
+    {
+        ScaleFactorBits = new int[4];
+        Granules = new GranuleInfo[2];
+        Granules[0] = new GranuleInfo();
+        Granules[1] = new GranuleInfo();
     }
 }

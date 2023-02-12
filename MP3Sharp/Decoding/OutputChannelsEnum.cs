@@ -14,11 +14,12 @@
 //  *
 //  ***************************************************************************/
 
-namespace MP3Sharp.Decoding {
-    internal enum OutputChannelsEnum {
-        BothChannels = 0,
-        LeftChannel = 1,
-        RightChannel = 2,
-        DownmixChannels = 3
-    }
+namespace MP3Sharp.Decoding;
+
+internal enum OutputChannelsEnum
+{
+    BothChannels = 0,
+    LeftChannel = 1,
+    RightChannel = 2,
+    DownmixChannels = 3
 }
